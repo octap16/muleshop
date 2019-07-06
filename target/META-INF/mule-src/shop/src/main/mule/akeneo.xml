@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<flow name="read-data-from-db" doc:id="df0e2458-ac34-4f51-9ec3-9f2bcca639f9" >
+		<http:listener doc:name="Listener" doc:id="c2e5e7b0-e376-480d-94c6-27f5611a4237" config-ref="HTTP_Listener_config" path="/${http.retrive-path}" />
+		<flow-ref doc:name="validtion-payload" doc:id="215cf20b-b4ca-4b0a-8c4d-76c455f65d52" name="akeneo-validtion-payload"/>
+		<ee:transform doc:name="createAcc" doc:id="abb95c75-d3ea-46c6-be0d-5631ada4adec" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="userAcc" ><![CDATA[%dw 2.0
+output application/json
+---
+[]]]></ee:set-variable>
+				<ee:set-variable variableName="goodsAcc" ><![CDATA[%dw 2.0
+output application/json
+---
+[]]]></ee:set-variable>
+				<ee:set-variable variableName="order" ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="retrieve-data" doc:id="6fae5a3b-b939-4dc5-8dd6-a4370fb241b7" name="retrieve-data"/>
+		<ee:transform doc:name="concat-vars" doc:id="9019a086-358e-48d3-8ffd-523957a03911" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	users: vars.userAcc,
+	goods: vars.goodsAcc
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="retrieve-data" doc:id="9fb847df-9548-4592-9c98-27861c13dbdf" >
+		<foreach doc:name="For Each" doc:id="a27fa7f0-cecf-4f3b-a854-0c3da8c1af25" collection="#[payload]">
+			<scatter-gather doc:name="Scatter-Gather" doc:id="da1ed44a-9fd8-45a9-b699-0af8b8a17d64">
+				<route>
+					<db:select doc:name="select-from-user" doc:id="f01882f0-dcef-46ec-b9c8-ded314973e96" config-ref="Database_Config" target="userData" targetValue="#[payload[0]]">
+						<db:sql>select * from users where user_id = :id_user</db:sql>
+						<db:input-parameters><![CDATA[#[payload]]]></db:input-parameters>
+					</db:select>
+					<ee:transform doc:name="userAcc" doc:id="c82e1fb3-b00e-45ef-85d1-5aee7e654be9">
+						<ee:message>
+						</ee:message>
+						<ee:variables>
+							<ee:set-variable variableName="userAcc"><![CDATA[%dw 2.0
+output application/json
+---
+vars.userAcc + vars.userData]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+				</route>
+				<route>
+					<db:select doc:name="select-from-goods" doc:id="75254073-0dc5-4bb8-ad22-221250f7fd00" config-ref="Database_Config" target="goodsData" targetValue="#[payload[0]]">
+						<db:sql>Select * from goods where id =  :id_good</db:sql>
+						<db:input-parameters><![CDATA[#[payload]]]></db:input-parameters>
+					</db:select>
+					<ee:transform doc:name="goodsAcc" doc:id="b82ea469-7c1a-4a9c-92a7-627324ab732c">
+						<ee:message>
+						</ee:message>
+						<ee:variables>
+							<ee:set-variable variableName="goodsAcc"><![CDATA[%dw 2.0
+output application/json
+---
+vars.goodsAcc + vars.goodsData]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+				</route>
+			</scatter-gather>
+		</foreach>
+	</flow>
+	<flow name="akeneo-validtion-payload" doc:id="8ac89492-8f43-4542-bcc8-c1c2a7e1fe58" >
+		<try doc:name="Copy_of_Try" doc:id="b293cd86-92fb-4768-8120-bd8d4392bf60" >
+			<validation:is-not-empty-collection doc:name="Copy_of_Is not empty payload" doc:id="139d23cc-811e-41a1-94c8-3b0f0b3635aa" message="payload is empty" />
+			<error-handler >
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="Copy_of_On Error Propagate" doc:id="da577e7c-e35d-49ee-8dce-f0ba81092be7" type="VALIDATION:EMPTY_COLLECTION" >
+					<set-payload value="#[error.description]" doc:name="Copy_of_Set Payload" doc:id="c6330ad0-7f77-40af-b9c1-cd63854bf9a7" />
+					<file:write doc:name="Copy_of_Write" doc:id="7556294f-bfac-4c3b-aa18-fb4ed837d978" config-ref="File_Config_Error" path="#[vars.fileName]" />
+				</on-error-propagate>
+			</error-handler>
+		</try>
+	</flow>
+	
+</mule>

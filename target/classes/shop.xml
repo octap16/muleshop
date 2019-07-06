@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	<file:config name="File_Config1" doc:name="File Config" doc:id="e0e43621-babb-4da5-a54c-cc3796e4e21a" >
+		<file:connection workingDir="C:\Users\ovdov\Desktop\output" />
+	</file:config>
+	<flow name="reatriev-data-from-csv" doc:id="068b9b16-2a04-42da-b150-b8990387ca6f" >
+		<file:listener doc:name="read-csv" doc:id="06a44602-e2f9-4a52-b066-4cd57453505a" config-ref="File_Config_Retrieve" autoDelete="true">
+			<scheduling-strategy>
+				<fixed-frequency frequency="5000" />
+			</scheduling-strategy>
+			<file:matcher filenamePattern="*.csv" />
+		</file:listener>
+		<ee:transform doc:name="create-fileName" doc:id="909c188d-a467-43c4-b718-17de6c9f6369" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="fileName" ><![CDATA[%dw 2.0
+output application/json
+---
+now() as String{format: "yyyy-MM-dd-HH-mm-ss-SS"} ++ "-" ++ attributes.fileName ]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="processing" doc:id="1a71f2ce-a0c5-4314-a6b8-39831048b22b" name="processing"/>
+	</flow>
+	<flow name="processing" doc:id="a5dc1627-65fc-46e7-96a7-429784da4ee1" >
+		<flow-ref doc:name="validtion-payload" doc:id="517c1dd2-a4f1-4477-861d-744168ad530c" name="validtion-payload"/>
+		<flow-ref doc:name="conver-to-json" doc:id="d7f82db9-9b3d-4936-ba0a-21c64cce4c68" name="conver-to-json"/>
+		<http:request method="POST" doc:name="retrieve-data-from-akeneo" doc:id="cddf53d0-bc60-4e86-9bca-34f75b88df27" config-ref="HTTP_Request_configuration" path="${http.retrive-path}">
+			<http:body><![CDATA[#[vars.order]]]></http:body>
+		</http:request>
+		<flow-ref doc:name="validtion-payload" doc:id="e7a8a1e1-1155-46d2-9d17-49c607a65ade" name="validtion-payload"/>
+		<flow-ref doc:name="check-for-null" doc:id="56e85715-74a9-405a-ab35-3e5cc5cabe56" name="check-for-null"/>
+		<ee:transform doc:name="fullOrder" doc:id="1e985c53-42db-474b-869e-602304b3b950">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+var goods = payload.goods
+var users = payload.users
+var order = vars.order
+fun gatherOrder(obj) = (
+	obj map(value, index)->{
+	date: value.date,
+	user: users  filter(userValue, userIndex) -> (value.id_user as Number == userValue.user_id as Number),
+	good: goods filter(goodValue, goodIndex) -> (value.id_good as Number == goodValue.id as Number) 
+}
+)
+
+---
+gatherOrder(order)  map (value, index) ->{
+	date: value.date as String,
+	user_id: value.user[0].user_id as String,
+	surname: value.user[0].surname,
+	name: value.user[0].name,
+	email: value.user[0].email,
+	good_id: value.good[0].id as String,
+	good_name: value.good[0].name,
+	good_color: value.good[0].color,
+	good_price: value.good[0].price as String,
+}
+
+
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[payload]" doc:name="fullOrder" doc:id="2550a7a3-b99b-4ee0-8994-b1fa33a450ce" variableName="fullOrder"/>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="c3f7fc37-07e6-411f-9678-82efdd101820" >
+			<route >
+				<flow-ref doc:name="SFCC" doc:id="58e33e71-a616-442f-95ed-5cef37effa39" name="SFCC" />
+			</route>
+			<route >
+				<flow-ref doc:name="Magento" doc:id="08363863-4a52-4d7f-8a56-f27a0fed5b52" name="Magento" />
+			</route>
+			<route >
+				<flow-ref doc:name="TB.one" doc:id="1fceffa5-7380-48be-9a72-266296646bbd" name="TB.one" />
+			</route>
+		</scatter-gather>
+		<file:write doc:name="Write" doc:id="2a08ec42-6c79-4453-a97c-49b4486b7300" path='#[vars.fileName]' config-ref="File_Config_Processed">
+			<file:content><![CDATA[#[vars.order]]]></file:content>
+		</file:write>
+	</flow>
+	<flow name="conver-to-json" doc:id="e98acc32-ae35-42c7-9782-00d94dd4da75" >
+		<ee:transform doc:name="csv to json" doc:id="5c306f17-680f-4a3a-b387-0bc26f4aa10e">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="order"><![CDATA[%dw 2.0
+output application/json
+---
+payload map(value, index)->{
+	id_user: value.id_user,
+	id_good:value.id_good,
+	date:value.date
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+	</flow>
+	<flow name="SFCC" doc:id="0b59ba7a-9ac7-414c-8126-181584adacfa" >
+		<file:write doc:name="Write to SFCC" doc:id="f13de3e8-c689-411c-a699-bf1796f4bc2f" path="#[vars.fileName]" config-ref="File_Config_SFCC">
+			<file:content ><![CDATA[#[output application/csv --- vars.fullOrder]]]></file:content>
+		</file:write>
+	</flow>
+	<flow name="Magento" doc:id="2698a4bf-c617-493c-87e2-8c9b5644ac83" >
+		<file:write doc:name="Write to Magento" doc:id="0c306f8a-3b3d-4791-bf4a-515fe583c399" config-ref="File_Config_Magento" path="#[vars.fileName ++ '.java']">
+			<file:content><![CDATA[#[output application/java --- vars.fullOrder]]]></file:content>
+		</file:write>
+	</flow>
+	<flow name="TB.one" doc:id="de31f809-4dd7-47b6-b91d-19b95a4a33e9" >
+		<file:write doc:name="Write to TB.one" doc:id="5beace93-c732-42f4-b502-7d35e36c8c1f" config-ref="File_Config_TB.one" path="#[vars.fileName ++ '.xml']">
+			<file:content><![CDATA[#[output application/xml --- orders:{order: vars.fullOrder}]]]></file:content>
+		</file:write>
+	</flow>
+	<flow name="validtion-payload" doc:id="3dbe543b-301e-44c5-9f7b-0939b0e0e1a6" >
+		<try doc:name="Try" doc:id="251ae250-4f9d-4a30-92b2-4893ad1c32d7" >
+			<validation:is-not-empty-collection doc:name="Is not empty payload" doc:id="655b5bdf-c716-4791-9b1a-a24fff63d529" message="payload is empty" />
+			<error-handler >
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="d43ee2db-deb0-426e-89cb-532ee0130ea5" type="VALIDATION:EMPTY_COLLECTION">
+					<set-payload value="#[error.description]" doc:name="Set Payload" doc:id="16613af6-4295-4a94-8853-8a373585e19f" />
+					<file:write doc:name="Write" doc:id="9442e0e0-b596-42ae-8933-effe4c96868d" config-ref="File_Config_Error" path="#[vars.fileName]">
+					</file:write>
+					<logger level="INFO" doc:name="Logger" doc:id="5ceb732c-398a-45aa-8717-fa1c8d0ffeab" />
+				</on-error-propagate>
+			</error-handler>
+		</try>
+	</flow>
+	<flow name="check-for-null" doc:id="a63250a4-f691-4c28-9c8e-e1005b576456" >
+		<ee:transform doc:name="Transform Message" doc:id="bf9d9d6a-6656-447c-9b71-b310ac6aafc3" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="usersAndGoods" ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-variable>
+				<ee:set-variable variableName="error" ><![CDATA[%dw 2.0
+output application/json
+---
+[]]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<foreach doc:name="For Each" doc:id="340a41da-cf26-4cef-9ae0-ac820df90775" collection="#[vars.order]">
+			<try doc:name="Try" doc:id="6d71cba4-54e2-48d1-ad92-f0b170e2ff7e" >
+				<validation:is-not-null doc:name="check users" doc:id="3dd27df0-1883-4fa2-8874-63c44ac27fa3" value="#[vars.usersAndGoods.users[vars.counter - 1]]" message="invalid user" />
+				<validation:is-not-null doc:name="check goods" doc:id="859ba561-8bde-4219-8002-91d7ee7d335b" value="#[vars.usersAndGoods.goods[vars.counter - 1]]" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="def80807-5daa-4eff-a110-289a9a635b8e" >
+						<ee:transform doc:name="Transform Message" doc:id="f0803363-1b8d-4411-a4eb-a9180d15ed6d" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+error + payload]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</foreach>
+		<ee:transform doc:name="Transform Message" doc:id="cb390efc-d592-469f-bce9-88e9030248e3" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json skipNullOn="everything"
+---
+vars.usersAndGoods]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="shopFlow" doc:id="6555c43f-1422-433e-97d3-50ce7471a6b1" >
+		<ee:transform doc:name="Transform Message" doc:id="466ba1b1-3678-4bb6-9c11-01eeb3079020" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var aa = {
+  "users": [
+    {
+      "user_id": 1,
+      "surname": "Yarmoshyk",
+      "email": "vll1y@meta.ua",
+      "name": "Valentyn"
+    },
+    null,
+    {
+      "user_id": 2,
+      "surname": "Yarmoshyk",
+      "email": "paul@gmail.com",
+      "name": "Pavlo"
+    },
+    null,
+    null
+  ],
+  "goods": [
+    null,
+    {
+      "color": "white",
+      "price": 96.0,
+      "name": "PUREBOOST GO SHOES",
+      "id": 2
+    },
+    {
+      "color": "black",
+      "price": 75.0,
+      "name": "U_PATH RUN SHOES",
+      "id": 3
+    },
+    null,
+    null
+  ]
+}
+---
+aa.users[2-1]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	
+
+</mule>

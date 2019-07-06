@@ -1,0 +1,20 @@
+file:
+  path: "C://Users/ovdov/AnypointStudio/studio-workspace11/shop/file/input"
+  processed: "C://Users/ovdov/AnypointStudio/studio-workspace11/shop/file/processed"
+  error: "C://Users/ovdov/AnypointStudio/studio-workspace11/shop/file/error"
+  SFCC: "C://Users/ovdov/AnypointStudio/studio-workspace11/shop/file/SFCC"
+  Magento: "C://Users/ovdov/AnypointStudio/studio-workspace11/shop/file/Magento"
+  TB.one: "C://Users/ovdov/AnypointStudio/studio-workspace11/shop/file/TB.one"
+  
+db:
+  host: "localhost"
+  port: "3306"
+  password: "root"
+  user: "root"
+  database: "shoptest"
+  
+http:
+  port: "8080"
+  host: "localhost"
+  retrive-path: "retrive" 
+  

@@ -1,0 +1,58 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<orders>
+  <order>
+    <date>2018/10/06</date>
+    <user_id>1</user_id>
+    <surname>Yarmoshyk</surname>
+    <name>Valentyn</name>
+    <email>vll1y@meta.ua</email>
+    <good_id>1</good_id>
+    <good_name>SWIFT RUN SHOES</good_name>
+    <good_color>black</good_color>
+    <good_price>85</good_price>
+  </order>
+  <order>
+    <date>2019/11/30</date>
+    <user_id>1</user_id>
+    <surname>Yarmoshyk</surname>
+    <name>Valentyn</name>
+    <email>vll1y@meta.ua</email>
+    <good_id>2</good_id>
+    <good_name>PUREBOOST GO SHOES</good_name>
+    <good_color>white</good_color>
+    <good_price>96</good_price>
+  </order>
+  <order>
+    <date>2019/10/15</date>
+    <user_id>2</user_id>
+    <surname>Yarmoshyk</surname>
+    <name>Pavlo</name>
+    <email>paul@gmail.com</email>
+    <good_id>3</good_id>
+    <good_name>U_PATH RUN SHOES</good_name>
+    <good_color>black</good_color>
+    <good_price>75</good_price>
+  </order>
+  <order>
+    <date>2019/05/19</date>
+    <user_id>3</user_id>
+    <surname>Vdovychyn</surname>
+    <name>Ostap</name>
+    <email>octap16@gmail.com</email>
+    <good_id>4</good_id>
+    <good_name>DAME 5 SHOES</good_name>
+    <good_color>white</good_color>
+    <good_price>115</good_price>
+  </order>
+  <order>
+    <date>2019/04/20</date>
+    <user_id>4</user_id>
+    <surname>Hto</surname>
+    <name>HZ</name>
+    <email>hzhto@gmail.com</email>
+    <good_id>5</good_id>
+    <good_name>ULTRABOOST 19 SHOES</good_name>
+    <good_color>black</good_color>
+    <good_price>180</good_price>
+  </order>
+</orders>

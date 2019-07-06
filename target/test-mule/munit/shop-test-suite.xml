@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<munit:config name="new-test-suite.xml" />
+	<file:config name="File_Config" doc:name="File Config" doc:id="fbe42f8d-e83c-4784-9f63-ecfbe3b00ce5" >
+		<file:connection workingDir="${file.SFCC}" />
+	</file:config>
+	<file:matcher name="Matcher" doc:name="Matcher" doc:id="a6ebeb79-dccf-4ec8-84a9-71312307672a" filenamePattern="*.csv" />
+	<munit:test name="validation-empty-csv-payload" description="MUnit Test" doc:id="9d327c0c-5271-4673-9509-e347cfc7d110" expectedErrorType="VALIDATION:EMPTY_COLLECTION" expectedException="java.lang.RuntimeException" ignore="true">
+		<munit:execution >
+			<munit:set-event doc:name="Set empty payload" doc:id="cbbf559e-fb8e-491d-9a0c-e6d7e42a4687" >
+				<munit:payload encoding="UTF-8" mediaType="application/csv" />
+			</munit:set-event>
+			<set-variable value="test-error.txt" doc:name="fileName" doc:id="f0206fd7-a6f7-4830-95d2-7bd14c2c334b" variableName="fileName" />
+			<flow-ref doc:name="processing" doc:id="617e90bd-85b3-4119-aff7-ac41fe86bff1" name="processing"/>
+		</munit:execution>
+	</munit:test>
+	<munit:test name="test-transform-message" description="MUnit Test" doc:id="1c927c78-2e0d-4275-8ae9-e620f5520282" ignore="true">
+		<munit:execution >
+			<file:read doc:name="Read" doc:id="13f97b01-05c0-4bca-8060-14d846ece7f1" path="C:\Users\ovdov\AnypointStudio\studio-workspace11\shop\file\starter\sample1.csv"/>
+			<ee:transform doc:name="set-variable-expectedOrder" doc:id="26f6fe16-6ef9-4ad2-b92c-e9f861711a58">
+				<ee:message>
+				</ee:message>
+				<ee:variables>
+					<ee:set-variable variableName="expectedOrder"><![CDATA[%dw 2.0
+output application/json
+---
+[
+  {
+    "id_user": "1",
+    "id_good": "1",
+    "date": "2018/10/06"
+  },
+  {
+    "id_user": "1",
+    "id_good": "2",
+    "date": "2019/11/30"
+  },
+  {
+    "id_user": "2",
+    "id_good": "3",
+    "date": "2019/10/15"
+  },
+  {
+    "id_user": "3",
+    "id_good": "4",
+    "date": "2019/05/19"
+  },
+  {
+    "id_user": "4",
+    "id_good": "5",
+    "date": "2019/04/20"
+  }
+]]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<flow-ref doc:name="Flow Reference" doc:id="0f80578d-0078-4fc6-a114-2f2698e5915b" name="conver-to-json"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="6c2dbfa4-1f9f-4f76-8059-cf502804557a" expression="#[vars.expectedOrder]" is="#[MunitTools::equalTo(vars.order)]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="test-magento" description="MUnit Test" doc:id="78e2851c-e3df-4775-93ed-c7f59f5b3abe" ignore="true">
+		<munit:execution >
+			<ee:transform doc:name="set-variable-fullOrder" doc:id="d059c34f-c6ec-48d5-b83c-19ccc1ce2110" >
+				<ee:message />
+				<ee:variables >
+					<ee:set-variable variableName="fullOrder" ><![CDATA[%dw 2.0
+output application/json
+---
+[
+  {
+    "date": "2018/10/06",
+    "user_id": "1",
+    "surname": "Yarmoshyk",
+    "name": "Valentyn",
+    "email": "vll1y@meta.ua",
+    "good_id": "1",
+    "good_name": "SWIFT RUN SHOES",
+    "good_color": "black",
+    "good_price": "85"
+  },
+  {
+    "date": "2019/11/30",
+    "user_id": "1",
+    "surname": "Yarmoshyk",
+    "name": "Valentyn",
+    "email": "vll1y@meta.ua",
+    "good_id": "2",
+    "good_name": "PUREBOOST GO SHOES",
+    "good_color": "white",
+    "good_price": "96"
+  },
+  {
+    "date": "2019/10/15",
+    "user_id": "2",
+    "surname": "Yarmoshyk",
+    "name": "Pavlo",
+    "email": "paul@gmail.com",
+    "good_id": "3",
+    "good_name": "U_PATH RUN SHOES",
+    "good_color": "black",
+    "good_price": "75"
+  },
+  {
+    "date": "2019/05/19",
+    "user_id": "3",
+    "surname": "Vdovychyn",
+    "name": "Ostap",
+    "email": "octap16@gmail.com",
+    "good_id": "4",
+    "good_name": "DAME 5 SHOES",
+    "good_color": "white",
+    "good_price": "115"
+  },
+  {
+    "date": "2019/04/20",
+    "user_id": "4",
+    "surname": "Hto",
+    "name": "HZ",
+    "email": "hzhto@gmail.com",
+    "good_id": "5",
+    "good_name": "ULTRABOOST 19 SHOES",
+    "good_color": "black",
+    "good_price": "180"
+  }
+]]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<set-variable value="testWrite" doc:name="fileName" doc:id="65399b4e-f239-4263-88ff-43c68cb2b714" variableName="fileName" />
+			<flow-ref doc:name="Magento" doc:id="3be5b742-1424-4eb2-80f1-c2cd873fc354" name="Magento" />
+			<file:read doc:name="Read" doc:id="ece0b4fd-af0d-4522-9d63-3d15d14fe9e6" config-ref="File_Config_Magento" path="#[vars.fileName ++ '.java']" outputMimeType="application/java" />
+			<ee:transform doc:name="java to json" doc:id="e8a5f3be-1f1e-4dc9-966a-023a147e6a90" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<logger level="INFO" doc:name="Logger" doc:id="a05ebe9c-98a2-4cac-9c16-5c57e603915e" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="a99710fc-2b45-4b69-bf22-61569f36295a" expression="#[payload]" is="#[MunitTools::equalTo(vars.fullOrder)]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="test-SFCC" description="MUnit Test" doc:id="b5c31736-ae3d-4197-b578-38f237820bc5" ignore="true">
+		<munit:execution>
+			<ee:transform doc:name="set-variable-fullOrder" doc:id="5cecceec-994d-45cf-9cde-f08ca3051991">
+				<ee:message>
+				</ee:message>
+				<ee:variables>
+					<ee:set-variable variableName="fullOrder"><![CDATA[%dw 2.0
+output application/json
+---
+[
+  {
+    "date": "2018/10/06",
+    "user_id": "1",
+    "surname": "Yarmoshyk",
+    "name": "Valentyn",
+    "email": "vll1y@meta.ua",
+    "good_id": "1",
+    "good_name": "SWIFT RUN SHOES",
+    "good_color": "black",
+    "good_price": "85"
+  },
+  {
+    "date": "2019/11/30",
+    "user_id": "1",
+    "surname": "Yarmoshyk",
+    "name": "Valentyn",
+    "email": "vll1y@meta.ua",
+    "good_id": "2",
+    "good_name": "PUREBOOST GO SHOES",
+    "good_color": "white",
+    "good_price": "96"
+  },
+  {
+    "date": "2019/10/15",
+    "user_id": "2",
+    "surname": "Yarmoshyk",
+    "name": "Pavlo",
+    "email": "paul@gmail.com",
+    "good_id": "3",
+    "good_name": "U_PATH RUN SHOES",
+    "good_color": "black",
+    "good_price": "75"
+  },
+  {
+    "date": "2019/05/19",
+    "user_id": "3",
+    "surname": "Vdovychyn",
+    "name": "Ostap",
+    "email": "octap16@gmail.com",
+    "good_id": "4",
+    "good_name": "DAME 5 SHOES",
+    "good_color": "white",
+    "good_price": "115"
+  },
+  {
+    "date": "2019/04/20",
+    "user_id": "4",
+    "surname": "Hto",
+    "name": "HZ",
+    "email": "hzhto@gmail.com",
+    "good_id": "5",
+    "good_name": "ULTRABOOST 19 SHOES",
+    "good_color": "black",
+    "good_price": "180"
+  }
+]]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<set-variable value="testWrite.csv" doc:name="fileName" doc:id="96c1d7f1-ca58-4d07-aa7d-c492764c471c" variableName="fileName" />
+			<flow-ref doc:name="SFCC" doc:id="acefdbf9-c58d-4f8e-b23b-661fb61b7620" name="SFCC" />
+			<file:read doc:name="Read" doc:id="0881c733-0aec-43bb-ae54-8217c4b41d23" path="#[vars.fileName]" config-ref="File_Config_SFCC" outputMimeType="application/csv" />
+			<ee:transform doc:name="csv to json" doc:id="475fbf59-5ee9-4a27-b49c-5ce3162fb859">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<file:delete doc:name="Delete" doc:id="452f17ff-11ac-4c02-8521-c08733f4887e" config-ref="File_Config_SFCC" path="vars.fileName" />
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-that doc:name="Assert that" doc:id="ce568097-c55c-4755-9e70-a523f35ff4b1" expression="#[payload]" is="#[MunitTools::equalTo(vars.fullOrder)]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="test-TB.one" description="MUnit Test" doc:id="d37128c3-3d89-4c0e-ab17-f82e243992ec" ignore="true">
+			<munit:execution>
+				<ee:transform doc:name="set-variable-fullOrder" doc:id="636cade7-f6d7-4311-80a2-0ea084de99c8">
+					<ee:message />
+					<ee:variables>
+						<ee:set-variable variableName="fullOrder"><![CDATA[%dw 2.0
+output application/json
+---
+[
+  {
+    "date": "2018/10/06",
+    "user_id": "1",
+    "surname": "Yarmoshyk",
+    "name": "Valentyn",
+    "email": "vll1y@meta.ua",
+    "good_id": "1",
+    "good_name": "SWIFT RUN SHOES",
+    "good_color": "black",
+    "good_price": "85"
+  },
+  {
+    "date": "2019/11/30",
+    "user_id": "1",
+    "surname": "Yarmoshyk",
+    "name": "Valentyn",
+    "email": "vll1y@meta.ua",
+    "good_id": "2",
+    "good_name": "PUREBOOST GO SHOES",
+    "good_color": "white",
+    "good_price": "96"
+  },
+  {
+    "date": "2019/10/15",
+    "user_id": "2",
+    "surname": "Yarmoshyk",
+    "name": "Pavlo",
+    "email": "paul@gmail.com",
+    "good_id": "3",
+    "good_name": "U_PATH RUN SHOES",
+    "good_color": "black",
+    "good_price": "75"
+  },
+  {
+    "date": "2019/05/19",
+    "user_id": "3",
+    "surname": "Vdovychyn",
+    "name": "Ostap",
+    "email": "octap16@gmail.com",
+    "good_id": "4",
+    "good_name": "DAME 5 SHOES",
+    "good_color": "white",
+    "good_price": "115"
+  },
+  {
+    "date": "2019/04/20",
+    "user_id": "4",
+    "surname": "Hto",
+    "name": "HZ",
+    "email": "hzhto@gmail.com",
+    "good_id": "5",
+    "good_name": "ULTRABOOST 19 SHOES",
+    "good_color": "black",
+    "good_price": "180"
+  }
+]]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<set-variable value="testWrite.xml" doc:name="fileName" doc:id="41e58c28-b707-47a4-83f5-43a5084ae5af" variableName="fileName"/>
+			<flow-ref doc:name="TB.one" doc:id="89d14d2d-ddc3-49d9-be6e-aa5af9cbe894" name="TB.one" />
+				<file:read doc:name="Read" doc:id="fa4a831d-54a0-441e-b3da-6a5bcc37b545" config-ref="File_Config_TB.one" path="#[vars.fileName ++ '.xml']" outputMimeType="application/csv" />
+				<ee:transform doc:name="json to xml" doc:id="703b6b33-e614-4759-b1cf-eba6e2373d78">
+					<ee:message>
+					</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="fullOrderXml" ><![CDATA[%dw 2.0
+output application/xml
+
+---
+orders:{order: vars.fullOrder}]]></ee:set-variable>
+				</ee:variables>
+				</ee:transform>
+			<file:delete doc:name="Delete" doc:id="834c0935-d5e8-43e3-9f76-27871ff6d1c4" config-ref="File_Config_TB.one" path="#[vars.fileName ++ '.xml']"/>
+			</munit:execution>
+			<munit:validation>
+				<munit-tools:assert-that doc:name="Copy_of_Assert that" doc:id="f9dd57ec-d186-4a1a-9c28-357169c57ba6" expression="#[vars.fullOrderXml]" is="#[MunitTools::equalTo(payload)]" />
+			</munit:validation>
+		</munit:test>
+
+
+</mule>

@@ -1,0 +1,91 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="json" format="json">
+      <types:shape format="weave" example="examples/goods-1.json"><![CDATA[%dw 2.0
+
+type json = {|
+  color: String, 
+  price: Number {"typeId": "double"}, 
+  name: String, 
+  id: Number {"typeId": "int"}
+|} {"example": "{\"color\":\"black\",\"price\":85.0,\"name\":\"SWIFT RUN SHOES\",\"id\":1}"}
+
+]]></types:shape>
+    </types:type>
+    <types:type name="user-json" format="json">
+      <types:shape format="weave" example="examples/users.json"><![CDATA[%dw 2.0
+
+type user_json = Array<{|  user_id: Number {"typeId": "int"},   surname: String,   name: String,   email: String|}> {"example": "[{\"user_id\":1,\"surname\":\"Yarmoshyk\",\"name\":\"Valentyn\",\"email\":\"vll1y@meta.ua\"},{\"user_id\":2,\"surname\":\"Yarmoshyk\",\"name\":\"Pavlo\",\"email\":\"paul@gmail.com\"}]"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#5c306f17-680f-4a3a-b387-0bc26f4aa10e"/>
+  <types:enrichment select="#50932e2d-a07c-40d7-9963-33b0bdb12abd">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="user-json"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#702692cc-11f1-47f2-89b2-599b90da9e2a">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="json"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#5cecceec-994d-45cf-9cde-f08ca3051991"/>
+  <types:enrichment select="#26f6fe16-6ef9-4ad2-b92c-e9f861711a58"/>
+  <types:enrichment select="#909c188d-a467-43c4-b718-17de6c9f6369"/>
+  <types:enrichment select="#703b6b33-e614-4759-b1cf-eba6e2373d78"/>
+  <types:enrichment select="#162b7c05-6b00-4ca1-af7a-265d87e11bf8">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="user-json"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#4f8d20e7-1b29-4012-a05b-cf9770420499"/>
+  <types:enrichment select="#44d34262-3f37-4899-9665-ada2d6315902"/>
+  <types:enrichment select="#46776ead-6e8f-4e27-9fda-45ae4709c121">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:attributes type="json"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#486a4751-78c4-4824-838f-e93f459f09e7"/>
+  <types:enrichment select="#4623d8e0-bd86-4ee3-b15b-f4f057677c9c"/>
+  <types:enrichment select="#abb95c75-d3ea-46c6-be0d-5631ada4adec"/>
+  <types:enrichment select="#f01882f0-dcef-46ec-b9c8-ded314973e96">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="user-json"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#75254073-0dc5-4bb8-ad22-221250f7fd00">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="json"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#b82ea469-7c1a-4a9c-92a7-627324ab732c"/>
+  <types:enrichment select="#c82e1fb3-b00e-45ef-85d1-5aee7e654be9"/>
+  <types:enrichment select="#bf9d9d6a-6656-447c-9b71-b310ac6aafc3"/>
+</types:mule>

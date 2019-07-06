@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<file:config name="File_Config_Retrieve" doc:name="File Config" doc:id="5e8da268-5188-43a1-8cf6-8d4ecf827c1f" >
+		<file:connection workingDir="${file.path}" />
+	</file:config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="4f99809f-adfa-41f9-a7a0-8dadb6f8b076" >
+		<db:my-sql-connection host="${db.host}" port="${db.port}" user="${db.user}" password="${db.password}" database="${db.database}" />
+	</db:config>
+	<configuration-properties doc:name="Configuration properties" doc:id="4449f528-6ae0-42ab-a3b1-99db626da5df" file="test-configuration.yaml" />
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="dca40256-1aa9-4ac7-bbdb-d473d16e3474">
+		<http:request-connection host="${http.host}" port="${http.port}" connectionIdleTimeout="0"/>
+	</http:request-config>
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="6ca2f683-b178-4e3a-a348-8b0cf7d1ff46" >
+		<http:listener-connection host="0.0.0.0" port="${http.port}" />
+	</http:listener-config>
+	<file:config name="File_Config_SFCC" doc:name="File Config" doc:id="593ee2d5-e737-491f-834e-ff894e358d43" >
+		<file:connection workingDir="${file.SFCC}" />
+	</file:config>
+	<file:config name="File_Config_Magento" doc:name="File Config" doc:id="14e776c6-0843-4b88-b9cb-5f0241923376" >
+		<file:connection workingDir="${file.Magento}" />
+	</file:config>
+	<file:config name="File_Config_TB.one" doc:name="File Config" doc:id="2bcbc58d-40c6-4cc3-95d3-fbc235309de2" >
+		<file:connection workingDir="${file.TB.one}" />
+	</file:config>
+	<file:config name="File_Config_Processed" doc:name="File Config" doc:id="a9c34e05-7894-4f96-9922-0f63c4692020" >
+		<file:connection workingDir="${file.processed}" />
+	</file:config>
+	<file:config name="File_Config_Error" doc:name="File Config" doc:id="dd6aa98d-451f-4181-b20c-200159a50a4d" >
+		<file:connection workingDir="${file.error}" />
+	</file:config>
+</mule>

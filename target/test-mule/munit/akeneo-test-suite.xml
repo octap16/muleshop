@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<munit:config name="akeneo-test-suite.xml" />
+	<munit:test name="test-empty-payload" description="MUnit Test" doc:id="5aa9fc57-66f4-4c1e-81dc-91223b149832" expectedErrorType="VALIDATION:EMPTY_COLLECTION" expectedException="java.lang.RuntimeException" ignore="true">
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="b88469b3-1bac-4a49-9b82-c6bdcc86dd1b" >
+				<munit:payload encoding="UTF-8" mediaType="application/json" />
+			</munit:set-event>
+			<set-variable value="test-error.txt" doc:name="fileName" doc:id="e08f8497-bdb3-42d1-b231-258ceb37e517" variableName="fileName"/>
+			<flow-ref doc:name="Flow Reference" doc:id="f4b624a1-b5e7-4343-8edc-eaabf47333bd" name="read-data-from-db"/>
+		</munit:execution>
+	</munit:test>
+	<munit:test name="test-valid-input-data" description="MUnit Test" doc:id="2b14c2be-3644-4349-a136-6d075cfc35ee" ignore="true">
+		<munit:execution >
+			<ee:transform doc:name="set-payload" doc:id="b920effd-1477-4984-af53-1040c5f2cb37" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+[
+  {
+    "id_user": "1",
+    "id_good": "1",
+    "date": "2018/10/06"
+  },
+  {
+    "id_user": "1",
+    "id_good": "2",
+    "date": "2019/11/30"
+  },
+  {
+    "id_user": "2",
+    "id_good": "3",
+    "date": "2019/10/15"
+  },
+  {
+    "id_user": "3",
+    "id_good": "4",
+    "date": "2019/05/19"
+  },
+  {
+    "id_user": "4",
+    "id_good": "5",
+    "date": "2019/04/20"
+  }
+]]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<flow-ref doc:name="retrieve-data" doc:id="7fcb0be4-5c57-4b75-8583-415e8dba9b8d" name="retrieve-data" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="f482b557-cf8b-46f4-b9ec-cf2ee427e402" expression="#[vars.userAcc]" is="#[MunitTools::not(MunitTools::equalTo([]))]"/>
+			<munit-tools:assert-that doc:name="Assert that" doc:id="32ad2065-0030-4809-8640-70be735e7a34" expression="#[vars.goodsAcc]" is="#[MunitTools::not(MunitTools::equalTo([]))]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="test-invalid-input-data" description="MUnit Test" doc:id="93f1f38a-f37c-44a4-b90b-5395bf8a54c5">
+			<munit:execution>
+				<ee:transform doc:name="set-invalid-payload" doc:id="9984d237-38ad-4647-b148-16ab59b29759">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+[
+  {
+    "id_user": "1",
+    "id_good": "145",
+    "date": "2018/10/06"
+  },
+  {
+    "id_user": "12",
+    "id_good": "2",
+    "date": "2019/11/30"
+  },
+  {
+    "id_user": "2",
+    "id_good": "3",
+    "date": "2019/10/15"
+  },
+  {
+    "id_user": "365",
+    "id_good": "456",
+    "date": "2019/05/19"
+  },
+  {
+    "id_user": "467",
+    "id_good": "576",
+    "date": "2019/04/20"
+  }
+]]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<flow-ref doc:name="read-data-from-db" doc:id="3317d1b1-b8f7-4819-85e9-dd6e35067d41" name="read-data-from-db" />
+			</munit:execution>
+			<munit:validation>
+				<munit-tools:assert-that doc:name="Copy_of_Assert that" doc:id="88eede88-1cc7-47f1-a776-5acb9a31be68" expression="#[vars.userAcc]" is='#[MunitTools::nullValue()]' />
+				<munit-tools:assert-that doc:name="Copy_of_Assert that" doc:id="9d976003-3c58-4684-a28f-9c2bafd815c8" expression="#[vars.goodsAcc]" is='#[MunitTools::nullValue()]' />
+			</munit:validation>
+		</munit:test>
+
+
+</mule>

@@ -1,0 +1,6 @@
+date,user_id,surname,name,email,good_id,good_name,good_color,good_price
+2018/10/06,1,Yarmoshyk,Valentyn,vll1y@meta.ua,1,SWIFT RUN SHOES,black,85
+2019/11/30,1,Yarmoshyk,Valentyn,vll1y@meta.ua,2,PUREBOOST GO SHOES,white,96
+2019/10/15,2,Yarmoshyk,Pavlo,paul@gmail.com,3,U_PATH RUN SHOES,black,75
+2019/05/19,3,Vdovychyn,Ostap,octap16@gmail.com,4,DAME 5 SHOES,white,115
+2019/04/20,4,Hto,HZ,hzhto@gmail.com,5,ULTRABOOST 19 SHOES,black,180
